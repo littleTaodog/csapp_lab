@@ -90,7 +90,7 @@ EXAMPLES OF ACCEPTABLE CODING STYLE:
   }
 
 FLOATING POINT CODING RULES
-
+ 
 For the problems that require you to implement floating-point operations,
 the coding rules are less strict.  You are allowed to use looping and
 conditional control.  You are allowed to use both ints and unsigneds.
@@ -284,7 +284,17 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+  unsigned exp,exp2,frac,s;
+  s = uf & (1<<31);
+  frac = uf & 0x7fffff;
+  exp = (uf>>23) & 0xff;
+  if(exp==255){
+    return uf; 
+  }
+  exp2 = exp + 1;
+  if(exp2==255) return s|0x7f800000;
+  exp2 = exp << 23;
+  return s|exp2|frac;
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -299,7 +309,17 @@ unsigned floatScale2(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+  unsigned sign,exp,frac,m;
+  unsigned exponent;
+  sign = uf & (1<<31);
+  exp = (uf>>23) & 0xff;
+  if(exp==255) return 0x8000000;
+  if(exp<127) return 0;
+  frac = uf & 0x7fffff;
+  exponent = exp - 127;
+  m = frac >> (23-exponent);
+  m = m | (1<<(exponent+1));
+  return m|sign;
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
@@ -315,5 +335,9 @@ int floatFloat2Int(unsigned uf) {
  *   Rating: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+  int exp;
+  if(x<=-127) return 0;
+  if(x>127) return 0x7f800000;
+  exp = x + 127;
+  return exp<<23;
 }
