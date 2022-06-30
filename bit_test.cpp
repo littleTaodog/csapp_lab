@@ -1,12 +1,70 @@
 #include<iostream>
 using namespace std;
 
+void floatScale2(){
+	unsigned uf=0x7effffff;
+	unsigned s = uf & (1<<31);
+	printf("s=%x\n",s);
+	unsigned frac = uf & 0x7fffff;
+	printf("frac=%x\n",frac);
+	unsigned exp = (uf>>23) & 0xff;
+	printf("exp=%x\n",((uf&0x7f800000)>>23));
+	unsigned exp2 = exp + 1;
+	printf("exp2=%x\n",exp2);
+	unsigned exponent = exp - 127;
+	printf("exponent=%x\n",exponent);
+	unsigned m = frac >> (23-exponent);
+	m = m | (1<<exponent);
+	printf("m=%x\n",m);
+	printf("neg shift:%x\n",0x7fffff>>-100);
+}
 
+void logicalNeg(){
+	int x = 0x80000000;
+	printf("~x+1=%x\n",~x+1);
+	int r = x|(~x+1);
+	printf("x|(~x+1)=%x\n",r);
+	printf("r>>31=%x\n",r>>31);
+	printf("r>>32=%x\n",r>>32);
+	r = (r>>31) + 1;
+	printf("r=%x\n",r);
+}
+
+
+void isLessOrEqual(){
+	int y = 0x80000000;
+	int x = 0x7fffffff;
+	int isneg = (x>>31)&1;
+	int ispos = !(y>>31);
+	int a = (~x) + 1;
+	int cmp = 0;
+	cmp = a + y;
+	cmp = cmp >>31;
+	printf("isneg=%x,ispos=%x\n",isneg,ispos);
+	printf("!cpm=%x\n",!cmp);
+	printf("result=%x\n",(!cmp)|(isneg&ispos));
+}
+
+void isAsciiDigit(){
+	int x=0x30;
+	int low = ~x + 1 + 0x39;
+	int high = ~x + 0x30;
+	printf("low=%x,high=%x\n",low,high);
+}
+
+void buildTmax(){
+	int y,z;
+	y = 7<<8 | 0xff;
+	z = 0xff<<8 | 0xff;
+	y = y<<16 | z;
+	y = y<<4 | 0xf;
+	printf("Tmax=%x\n",y);
+}
 
 void movetest(){
 	int x = 0x0000000c;
 	int sign;
-	sign = s>>31;
+	sign = x>>31;
 	x = (~sign&x)|(sign&~x);
 	int b_16 = (!!((x>>16)^0))<<4;
 	printf("b_16:%d\n",b_16);
@@ -51,6 +109,11 @@ void sameJudge(){
 
 int main(){
 	//exclamationPoint();
-	movetest();
+	//movetest();
+	//buildTmax();
+	//isAsciiDigit();
+	//isLessOrEqual();
+	//logicalNeg();
+	floatScale2();
 	return 0;
 }

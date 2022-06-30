@@ -143,8 +143,7 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  int _x = x & y;
-  return ~_x;
+  return (~x&y)|(x&~y);
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -154,7 +153,7 @@ int bitXor(int x, int y) {
  */
 int tmin(void) {
   int x = 1;
-  x = x << 32;
+  x = x << 31;
   return x;
 }
 //2
@@ -166,9 +165,15 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-  int y=0;
-  y = (x + 1) ^ (~x);
-  return !y;
+  // int y=0,z=1;
+  // y = ~y;
+  // y = (x + 1) ^ (~x);
+  int y,z;
+	y = 7<<8 | 0xff;
+	z = 0xff<<8 | 0xff;
+	y = y<<16 | z;
+	y = y<<4 | 0xf;
+  return !(x^y);
 }
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
@@ -203,9 +208,9 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  int low = ~x + 0x39;
+  int low = ~x + 1 + 0x39;
   int high = ~x + 0x30;
-  return ~(low>>32) & (high>>32);
+  return (~(low>>31)) & (~(high>>31)+1);
 }
 /* 
  * conditional - same as x ? y : z 
@@ -232,8 +237,12 @@ int isLessOrEqual(int x, int y) {
   int a = (~x) + 1;
   int cmp = 0;
   cmp = a + y;
-  cmp = cmp >>32;
-  return !cmp;
+  cmp = cmp >>31;
+  int isneg,ispos,sign;
+  isneg = (x>>31)&1;
+  ispos = !(y>>31);
+  // sign = ((ispos + ~isneg + 1)>>31)&1; 
+  return (!cmp)|(isneg&ispos);
 }
 //4
 /* 
@@ -245,7 +254,7 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return ((x|(~x+1))>>31 + 1)&1;
+  return (((x|(~x+1))>>31) + 1);
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
@@ -291,9 +300,10 @@ unsigned floatScale2(unsigned uf) {
   if(exp==255){
     return uf; 
   }
+  if(exp==0) return uf<<1|s;
   exp2 = exp + 1;
   if(exp2==255) return s|0x7f800000;
-  exp2 = exp << 23;
+  exp2 = exp2 << 23;
   return s|exp2|frac;
 }
 /* 
@@ -318,8 +328,9 @@ int floatFloat2Int(unsigned uf) {
   frac = uf & 0x7fffff;
   exponent = exp - 127;
   m = frac >> (23-exponent);
-  m = m | (1<<(exponent+1));
-  return m|sign;
+  m = m | (1<<exponent);
+  if(sign!=0) m = ~m + 1; 
+  return m;
 }
 /* 
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
