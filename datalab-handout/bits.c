@@ -143,7 +143,7 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  return (~x&y)|(x&~y);
+  return ~((~(~x&y))&(~(x&~y)));
 }
 /* 
  * tmin - return minimum two's complement integer 
@@ -165,15 +165,10 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-  // int y=0,z=1;
-  // y = ~y;
-  // y = (x + 1) ^ (~x);
   int y,z;
-	y = 7<<8 | 0xff;
-	z = 0xff<<8 | 0xff;
-	y = y<<16 | z;
-	y = y<<4 | 0xf;
-  return !(x^y);
+  y = ~x;  
+  z = x + 1;
+  return (!(y^z))&(!!y);
 }
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
@@ -234,15 +229,15 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
+  int sign_x,sign_y,sign;
   int a = (~x) + 1;
   int cmp = 0;
   cmp = a + y;
-  cmp = cmp >>31;
-  int isneg,ispos,sign;
-  isneg = (x>>31)&1;
-  ispos = !(y>>31);
-  // sign = ((ispos + ~isneg + 1)>>31)&1; 
-  return (!cmp)|(isneg&ispos);
+  cmp = (cmp >>31)&1;
+  sign_x = (x>>31)&1;
+  sign_y = (y>>31)&1;
+  sign = sign_x ^ sign_y;
+  return (sign&sign_x)|((!sign)&(!cmp));
 }
 //4
 /* 
@@ -320,16 +315,18 @@ unsigned floatScale2(unsigned uf) {
  */
 int floatFloat2Int(unsigned uf) {
   unsigned sign,exp,frac,m;
-  unsigned exponent;
-  sign = uf & (1<<31);
+  int exponent;
+  sign = uf>>31;
   exp = (uf>>23) & 0xff;
-  if(exp==255) return 0x8000000;
-  if(exp<127) return 0;
-  frac = uf & 0x7fffff;
   exponent = exp - 127;
-  m = frac >> (23-exponent);
-  m = m | (1<<exponent);
-  if(sign!=0) m = ~m + 1; 
+  if(!(uf&0x7fffffff))  return 0;
+  // printf("%d\n",exponent);
+  if(exponent<0)       return 0;
+  if(exponent>=31)      return 0x80000000u;
+  frac = (uf & 0x7fffff)|0x00800000;
+  if(exponent<=23)  m = frac >> (23-exponent);
+  else              m = frac << (exponent-23);
+  if(sign) m = ~m + 1; 
   return m;
 }
 /* 

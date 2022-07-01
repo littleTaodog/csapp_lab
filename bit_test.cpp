@@ -2,21 +2,22 @@
 using namespace std;
 
 void floatScale2(){
-	unsigned uf=0x7effffff;
+	unsigned uf=0x800000;
 	unsigned s = uf & (1<<31);
 	printf("s=%x\n",s);
 	unsigned frac = uf & 0x7fffff;
 	printf("frac=%x\n",frac);
 	unsigned exp = (uf>>23) & 0xff;
-	printf("exp=%x\n",((uf&0x7f800000)>>23));
+	printf("exp=%x\n",exp);
 	unsigned exp2 = exp + 1;
 	printf("exp2=%x\n",exp2);
 	unsigned exponent = exp - 127;
-	printf("exponent=%x\n",exponent);
+	printf("exponent=%d\n",exponent);
 	unsigned m = frac >> (23-exponent);
 	m = m | (1<<exponent);
 	printf("m=%x\n",m);
 	printf("neg shift:%x\n",0x7fffff>>-100);
+	printf("max float:%d\n",2130706431.0);
 }
 
 void logicalNeg(){
